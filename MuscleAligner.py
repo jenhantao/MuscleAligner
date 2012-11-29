@@ -75,16 +75,16 @@ for i in range(len(referenceSequence)):
     else:
         coverageString = coverageString + " " # append blank space instead of 0s to improve readability
     if flagCount > 0:
-        flagString = flagString + str(flagCount)
+        flagString = flagString + str(1)
     else:
         flagString = flagString + " "
 # print output
 spacing = maxNameLength + 6
-print ('{0: <' + str(spacing) + '}').format("Coverage") + coverageString
-print ('{0: <' + str(spacing) + '}').format("Flags") + flagString
-print ('{0: <' + str(spacing) + '}').format(referenceName) + referenceSequence
+print ('{0: <' + str(spacing) + '}').format("Coverage") + "\t" + coverageString
+print ('{0: <' + str(spacing) + '}').format("Flags") + "\t" + flagString
+print ('{0: <' + str(spacing) + '}').format(referenceName) + "\t" + referenceSequence
 for i in range(len(sequenceNames)-1):
-    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) + alignments[i]
+    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) +"\t" + alignments[i]
 
 
 

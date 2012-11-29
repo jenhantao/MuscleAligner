@@ -55,12 +55,6 @@ while i < len(sequenceNames):
         alignments.append(sequenceMatches[1].replace("\n",""))
     else:
         alignments.append(sequenceMatches[0].replace("\n",""))        
-    #print "appending: "+sequenceMatches[1].replace("\n","")
-    #print "--------------------"
-    #print muscleout
-    #print "--------------------"
-    #print nameMatches
-    #print sequenceMatches
 os.remove("temp.fas")
 
 # compute coverage and flags 
@@ -74,22 +68,23 @@ for i in range(len(referenceSequence)):
         if alignments[j][i].upper() == referenceSequence[i].upper():
             coverageCount = coverageCount + 1;
         else:
-            flagCount = flagCount + 1
+            if not referenceSequence[i].upper() == "-":
+                flagCount = flagCount + 1
     if coverageCount > 0:
         coverageString = coverageString + str(coverageCount)
     else:
         coverageString = coverageString + " " # append blank space instead of 0s to improve readability
     if flagCount > 0:
-        flagString = flagString + str(flagCount)
+        flagString = flagString + str(1)
     else:
         flagString = flagString + " "
 # print output
 spacing = maxNameLength + 6
-print ('{0: <' + str(spacing) + '}').format("Coverage") + coverageString
-print ('{0: <' + str(spacing) + '}').format("Flags") + flagString
-print ('{0: <' + str(spacing) + '}').format(referenceName) + referenceSequence
+print ('{0: <' + str(spacing) + '}').format("Coverage") + "\t" + coverageString
+print ('{0: <' + str(spacing) + '}').format("Flags") + "\t" + flagString
+print ('{0: <' + str(spacing) + '}').format(referenceName) + "\t" + referenceSequence
 for i in range(len(sequenceNames)-1):
-    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) + alignments[i]
+    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) +"\t" + alignments[i]
 
 
 
