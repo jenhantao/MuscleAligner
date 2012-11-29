@@ -80,7 +80,6 @@ for i in range(len(referenceSequence)):
     else:
         flagString = flagString + " "
 # print output
-print "\n\n\n\n"
 print "Coverage\t" + coverageString
 print "Flags\t" + flagString
 print referenceName + "\t" + referenceSequence
