@@ -42,14 +42,16 @@ while i < len(sequenceNames):
     tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i])
     tempfile.close()
     i = i + 1
-    muscleout= os.popen("./muscle < temp.fas").read()
-    sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout) # I don't neccesarily need to grab all matches
-    nameMatches = re.findall(">.+",muscleout) # I don't neccesarily need to grab the names
+    muscleout= os.popen("./muscle < temp.fas").read() #store muscle output
+    # parse muscle output
+    sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout)
+    nameMatches = re.findall(">.+",muscleout)
+    # reference sequence is not necessarily the first sequence in output
     if nameMatches[0][1:] == referenceName:
         alignments.append(sequenceMatches[1].replace("\n",""))
     else:
         alignments.append(sequenceMatches[0].replace("\n",""))        
-    print "appending: "+sequenceMatches[1].replace("\n","")
+    #print "appending: "+sequenceMatches[1].replace("\n","")
     #print "--------------------"
     #print muscleout
     #print "--------------------"
@@ -57,7 +59,30 @@ while i < len(sequenceNames):
     #print sequenceMatches
 os.remove("temp.fas")
 
-#compute coverage and flags 
+# compute coverage and flags 
+flagString = ""
+coverageString = ""
+for i in range(len(referenceSequence)):
+    flagCount = 0
+    coverageCount = 0; 
+    for j in range(len(alignments)):
+        #print "comparing " +alignments[j][i].upper() + " and " + referenceSequence[i].upper()
+        if alignments[j][i].upper() == referenceSequence[i].upper():
+            coverageCount = coverageCount + 1;
+        else:
+            flagCount = flagCount + 1
+    if coverageCount > 0:
+        coverageString = coverageString + str(coverageCount)
+    else:
+        coverageString = coverageString + " " # append blank space instead of 0s to improve readability
+    if flagCount > 0:
+        flagString = flagString + str(flagCount)
+    else:
+        flagString = flagString + " "
+# print output
+print "\n\n\n\n"
+print "Coverage\t" + coverageString
+print "Flags\t" + flagString
 print referenceName + "\t" + referenceSequence
 for i in range(len(sequenceNames)-1):
     print sequenceNames[i+1] +"\t" + alignments[i]
