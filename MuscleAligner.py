@@ -14,10 +14,14 @@ with open("./"+sys.argv[1]) as f:
 sequenceNames = [];
 sequences = [];
 i=0
+maxNameLength = 0 ;
 while i<len(inputSequenceFile):
     line = inputSequenceFile[i]
     if line.startswith(">"):
-        sequenceNames.append(line[1:].strip())
+        name = line[1:].strip()
+        if len(name) > maxNameLength:
+            maxNameLength = len(name)
+        sequenceNames.append(name)
     else:
         sequence = ""
         while i < len(inputSequenceFile) and not line.startswith(">"):
@@ -42,7 +46,7 @@ while i < len(sequenceNames):
     tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i])
     tempfile.close()
     i = i + 1
-    muscleout= os.popen("./muscle < temp.fas").read() #store muscle output
+    muscleout= os.popen("./muscle -quiet < temp.fas").read() #store muscle output
     # parse muscle output
     sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout)
     nameMatches = re.findall(">.+",muscleout)
@@ -51,12 +55,6 @@ while i < len(sequenceNames):
         alignments.append(sequenceMatches[1].replace("\n",""))
     else:
         alignments.append(sequenceMatches[0].replace("\n",""))        
-    #print "appending: "+sequenceMatches[1].replace("\n","")
-    #print "--------------------"
-    #print muscleout
-    #print "--------------------"
-    #print nameMatches
-    #print sequenceMatches
 os.remove("temp.fas")
 
 # compute coverage and flags 
@@ -70,7 +68,8 @@ for i in range(len(referenceSequence)):
         if alignments[j][i].upper() == referenceSequence[i].upper():
             coverageCount = coverageCount + 1;
         else:
-            flagCount = flagCount + 1
+            if not referenceSequence[i].upper() == "-":
+                flagCount = flagCount + 1
     if coverageCount > 0:
         coverageString = coverageString + str(coverageCount)
     else:
@@ -80,17 +79,12 @@ for i in range(len(referenceSequence)):
     else:
         flagString = flagString + " "
 # print output
-print "Coverage\t" + coverageString
-print "Flags\t" + flagString
-print referenceName + "\t" + referenceSequence
+spacing = maxNameLength + 6
+print ('{0: <' + str(spacing) + '}').format("Coverage") + coverageString
+print ('{0: <' + str(spacing) + '}').format("Flags") + flagString
+print ('{0: <' + str(spacing) + '}').format(referenceName) + referenceSequence
 for i in range(len(sequenceNames)-1):
-    print sequenceNames[i+1] +"\t" + alignments[i]
-
-
-
-
-
-
+    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) + alignments[i]
 
 
 
