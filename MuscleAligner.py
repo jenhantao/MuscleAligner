@@ -4,11 +4,17 @@
 # output: combine all of the aliignments and show coverage of the reference.  Then we can compute things like, where is there a gap in the coverage, and where do two different reads disagree?
 
 # input file: fasta file, with first sequene being the reference
+# second argument is whether or not to silence muscle, silenced by default, n to output everything
 import os
 import sys
 import re
-
-
+if len(sys.argv) > 2:
+    if sys.argv[2] == "n":
+        quiet = ""
+    else:
+        quiet = "-quiet "
+else:
+    quiet = "-quiet "
 with open("./"+sys.argv[1]) as f:
     inputSequenceFile = f.readlines()
 sequenceNames = [];
@@ -46,7 +52,7 @@ while i < len(sequenceNames):
     tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i])
     tempfile.close()
     i = i + 1
-    muscleout= os.popen("./muscle -quiet < temp.fas").read() #store muscle output
+    muscleout= os.popen("./muscle " + quiet +"< temp.fas").read() #store muscle output
     # parse muscle output
     sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout)
     nameMatches = re.findall(">.+",muscleout)
@@ -60,6 +66,7 @@ os.remove("temp.fas")
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
+alignPositions = [] # stores the position of a read aligned to the reference relative to the original reference sequence
 for i in range(len(referenceSequence)):
     flagCount = 0
     coverageCount = 0; 
