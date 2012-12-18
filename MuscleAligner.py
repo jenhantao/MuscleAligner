@@ -65,7 +65,7 @@ while i < len(sequenceNames):
     else:
         reads.append(sequenceMatches[0].replace("\n","")) 
         references.append(sequenceMatches[1].replace("\n",""))  
-    print ">" + referenceName + "\n" + references[-1] + "\n>" + "read" + "\n" + reads[-1]         
+    #print ">" + referenceName + "\n" + references[-1] + "\n>" + "read" + "\n" + reads[-1]         
 os.remove("temp.fas")
 
 # create a composite reference sequence
@@ -77,19 +77,8 @@ while i < len(references):
     #compare references
     j = 0
     while j < len(compositeReference):
-        print "composite: "+compositeReference
-        print "reference: "+references[i]
-        print "comparing: "+ compositeReference[j] +" and " +references[i][j] 
-        #if j > len(compositeReference):
-        #    # if current reference is longer, just add a gap to compositeReference
-        #    compositeReference = compositeReference + "-"
-        #elif j > len(references[i]):
-        #    # if compositeReference is longer, just add a gap to current reference
-        #    reference[i] = references[i] + "-"
-        #    reads[i] = reads[i] + "-"
         if compositeReference[j] == "-" and not references[i][j] == "-":
             # introduce new gap into reads[i] at position j
-            print "adding gap to other reference"
             reads[i] = reads[i][0:j] + "-" + reads[i][j:]
             # introduce new gap into reference[i] at position j
             references[i] = references[i][:j] + "-" + references[i][j:]
@@ -98,7 +87,6 @@ while i < len(references):
             reads[0] = reads[0] + "-"
         elif not compositeReference[j] == "-" and references[i][j] == "-":
             # introduce new gap into compositeReference at position j
-            print "adding gap to composite"
             compositeReference = compositeReference[0:j] + "-" + compositeReference[j:]
             # add gap to end of current read and reference
             references[i] = references[i] + "-"
@@ -111,9 +99,6 @@ while i < len(references):
         j = j + 1
     i = i + 1
 referenceSequence = compositeReference
-print "composite: "+compositeReference
-print "read 1:    "+reads[0]
-print "read 2:    "+reads[1]
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
@@ -129,6 +114,8 @@ for i in range(len(compositeReference)):
         else:
             if not compositeReference[i].upper() == "-":
                 flagCount = flagCount + 1
+                readSequences[j] = readSequences[j] + reads[j][i].lower()
+            else:
                 readSequences[j] = readSequences[j] + reads[j][i].lower()
     if coverageCount > 0:
         coverageString = coverageString + str(coverageCount)
