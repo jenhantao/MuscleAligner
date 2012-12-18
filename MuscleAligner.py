@@ -8,6 +8,7 @@
 import os
 import sys
 import re
+print "---------------------------------------------------------------------"
 if len(sys.argv) > 2:
     if sys.argv[2] == "n":
         quiet = ""
@@ -64,7 +65,7 @@ while i < len(sequenceNames):
     else:
         reads.append(sequenceMatches[0].replace("\n","")) 
         references.append(sequenceMatches[1].replace("\n",""))  
-    #print ">" + referenceName + "\n" + references[-1] + "\n>" + "read" + "\n" + reads[-1]         
+    print ">" + referenceName + "\n" + references[-1] + "\n>" + "read" + "\n" + reads[-1]         
 os.remove("temp.fas")
 
 # create a composite reference sequence
@@ -74,22 +75,45 @@ compositeReference = references[0] # the composite reference that we'll create b
 i = 1
 while i < len(references):
     #compare references
-    for j in range(len(compositeReference)):
+    j = 0
+    while j < len(compositeReference):
+        print "composite: "+compositeReference
+        print "reference: "+references[i]
+        print "comparing: "+ compositeReference[j] +" and " +references[i][j] 
+        #if j > len(compositeReference):
+        #    # if current reference is longer, just add a gap to compositeReference
+        #    compositeReference = compositeReference + "-"
+        #elif j > len(references[i]):
+        #    # if compositeReference is longer, just add a gap to current reference
+        #    reference[i] = references[i] + "-"
+        #    reads[i] = reads[i] + "-"
         if compositeReference[j] == "-" and not references[i][j] == "-":
-            # introduce new gap into read[i] at position j
-            reads[i] = reads[i][:j-1] + "-" + reads[i][j:]
-            # for testing, introduce new gap into reference[i] at position j
-            #reference[i] = reference[i][:j-1] + "-" + reference[i][j:]
+            # introduce new gap into reads[i] at position j
+            print "adding gap to other reference"
+            reads[i] = reads[i][0:j] + "-" + reads[i][j:]
+            # introduce new gap into reference[i] at position j
+            references[i] = references[i][:j] + "-" + references[i][j:]
+            # add gap to end of compositeReference and corresponding read
+            compositeReference = compositeReference + "-"
+            reads[0] = reads[0] + "-"
         elif not compositeReference[j] == "-" and references[i][j] == "-":
             # introduce new gap into compositeReference at position j
-            compositeReference = compositeReference[:j-1] + "-" + compositeReference[j:]
+            print "adding gap to composite"
+            compositeReference = compositeReference[0:j] + "-" + compositeReference[j:]
+            # add gap to end of current read and reference
+            references[i] = references[i] + "-"
+            reads[i] = reads[i] + "-"
             for k in range(i-1):
                 # introduce new gap into all reads before read i
-                reads[k] = reads[k][:j-1] + "-" + reads[k][j:]
-                # for testing, introduce new gap into reference[k] at position j
-                #reference[k] = reference[k][:j-1] + "-" + reference[k][j:]
+                reads[k] = reads[k][0:j] + "-" + reads[k][j:]
+                # introduce new gap into reference[k] at position j
+                references[k] = references[k][:j] + "-" + references[k][j:]
+        j = j + 1
     i = i + 1
 referenceSequence = compositeReference
+print "composite: "+compositeReference
+print "read 1:    "+reads[0]
+print "read 2:    "+reads[1]
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
