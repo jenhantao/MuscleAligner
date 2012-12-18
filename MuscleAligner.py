@@ -77,7 +77,7 @@ while i < len(references):
     for j in range(len(compositeReference)):
         if compositeReference[j] == "-" and not references[i][j] == "-":
             # introduce new gap into read[i] at position j
-            read[i] = read[i][:j-1] + "-" + read[i][j:]
+            reads[i] = reads[i][:j-1] + "-" + reads[i][j:]
             # for testing, introduce new gap into reference[i] at position j
             #reference[i] = reference[i][:j-1] + "-" + reference[i][j:]
         elif not compositeReference[j] == "-" and references[i][j] == "-":
@@ -85,7 +85,7 @@ while i < len(references):
             compositeReference = compositeReference[:j-1] + "-" + compositeReference[j:]
             for k in range(i-1):
                 # introduce new gap into all reads before read i
-                read[k] = read[k][:j-1] + "-" + read[k][j:]
+                reads[k] = reads[k][:j-1] + "-" + reads[k][j:]
                 # for testing, introduce new gap into reference[k] at position j
                 #reference[k] = reference[k][:j-1] + "-" + reference[k][j:]
     i = i + 1
