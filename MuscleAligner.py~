@@ -99,9 +99,6 @@ while i < len(references):
         j = j + 1
     i = i + 1
 referenceSequence = compositeReference
-print "composite: "+compositeReference
-print "read 1:    "+reads[0]
-print "read 2:    "+reads[1]
 # compute coverage and flags 
 flagString = ""
 coverageString = ""

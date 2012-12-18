@@ -8,7 +8,6 @@
 import os
 import sys
 import re
-print "---------------------------------------------------------------------"
 if len(sys.argv) > 2:
     if sys.argv[2] == "n":
         quiet = ""
