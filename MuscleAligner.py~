@@ -14,7 +14,7 @@ if len(sys.argv) > 2:
     else:
         quiet = "-quiet "
 else:
-    quiet = ""
+    quiet = "-quiet "
 with open("./"+sys.argv[1]) as f:
     inputSequenceFile = f.readlines()
 sequenceNames = [];
@@ -45,7 +45,8 @@ referenceSequence = sequences[0]
 referenceName = sequenceNames[0]
 i = 1
 tempfile = open('temp.fas','w')
-alignments = [];
+reads = []; # array that stores the alignments of the reads
+references = []; # array that stores the alignments of the reference sequence
 while i < len(sequenceNames):
     #print ">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i]
     tempfile = open('temp.fas','w+')
@@ -58,25 +59,53 @@ while i < len(sequenceNames):
     nameMatches = re.findall(">.+",muscleout)
     # reference sequence is not necessarily the first sequence in output
     if nameMatches[0][1:] == referenceName:
-        alignments.append(sequenceMatches[1].replace("\n",""))
+        reads.append(sequenceMatches[1].replace("\n",""))
+        references.append(sequenceMatches[0].replace("\n",""))
     else:
-        alignments.append(sequenceMatches[0].replace("\n",""))        
+        reads.append(sequenceMatches[0].replace("\n","")) 
+        references.append(sequenceMatches[1].replace("\n",""))  
+    #print ">" + referenceName + "\n" + references[-1] + "\n>" + "read" + "\n" + reads[-1]         
 os.remove("temp.fas")
 
+# create a composite reference sequence
+# reference alignments cannot differ in the order of letters [agctAGCT], but they can differ by where gaps are inserted
+# whenever a reference alignment has a gap that the others don't have, introduce that same gap into both the reference and the corresponding read
+compositeReference = references[0] # the composite reference that we'll create by resolving differences between reference alignments
+i = 1
+while i < len(references):
+    #compare references
+    for j in range(len(compositeReference)):
+        if compositeReference[j] == "-" and not references[i][j] == "-":
+            # introduce new gap into read[i] at position j
+            read[i] = read[i][:j-1] + "-" + read[i][j:]
+            # for testing, introduce new gap into reference[i] at position j
+            reference[i] = reference[i][:j-1] + "-" + reference[i][j:]
+        elif not compositeReference[j] == "-" and references[i][j] == "-":
+            # introduce new gap into compositeReference at position j
+            compositeReference = compositeReference[:j-1] + "-" + compositeReference[j:]
+            for k in range(i-1):
+                # introduce new gap into all reads before read i
+                read[k] = read[k][:j-1] + "-" + read[k][j:]
+                # for testing, introduce new gap into reference[k] at position j
+                reference[k] = reference[k][:j-1] + "-" + reference[k][j:]
+    i = i + 1
+referenceSequence = compositeReference
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
-alignPositions = [] # stores the position of a read aligned to the reference relative to the original reference sequence
-for i in range(len(referenceSequence)):
+readSequences =[""]*len(reads) 
+for i in range(len(compositeReference)):
     flagCount = 0
-    coverageCount = 0; 
-    for j in range(len(alignments)):
-        #print "comparing " +alignments[j][i].upper() + " and " + referenceSequence[i].upper()
-        if alignments[j][i].upper() == referenceSequence[i].upper():
+    coverageCount = 0;
+    for j in range(len(reads)):
+        #print "comparing " +reads[j][i].upper() + " and " + compositeReference[i].upper()
+        if reads[j][i].upper() == compositeReference[i].upper():
             coverageCount = coverageCount + 1;
+            readSequences[j] = readSequences[j] + reads[j][i].upper()
         else:
-            if not referenceSequence[i].upper() == "-":
+            if not compositeReference[i].upper() == "-":
                 flagCount = flagCount + 1
+                readSequences[j] = readSequences[j] + reads[j][i].lower()
     if coverageCount > 0:
         coverageString = coverageString + str(coverageCount)
     else:
@@ -89,13 +118,9 @@ for i in range(len(referenceSequence)):
 spacing = maxNameLength + 6
 print ('{0: <' + str(spacing) + '}').format("Coverage") + "\t" + coverageString
 print ('{0: <' + str(spacing) + '}').format("Flags") + "\t" + flagString
-print ('{0: <' + str(spacing) + '}').format(referenceName) + "\t" + referenceSequence
+print ('{0: <' + str(spacing) + '}').format(referenceName) + "\t" + compositeReference
 for i in range(len(sequenceNames)-1):
-    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) +"\t" + alignments[i]
-
-
-
-
+    print ('{0: <' + str(spacing) + '}').format(sequenceNames[i+1]) +"\t" + readSequences[i]
 
 
 
