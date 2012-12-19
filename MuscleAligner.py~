@@ -94,14 +94,16 @@ while i < len(references):
             # introduce new gap into reference[i] at position j
             references[i] = references[i][:j] + "-" + references[i][j:]
             # add gap to end of compositeReference and corresponding read
-            compositeReference = compositeReference + "-"
-            reads[0] = reads[0] + "-"
+            if len(references[i]) > len(compositeReference):
+                compositeReference = compositeReference + "-"
+                reads[0] = reads[0] + "-"
         elif not compositeReference[j] == "-" and references[i][j] == "-":
             # introduce new gap into compositeReference at position j
             compositeReference = compositeReference[0:j] + "-" + compositeReference[j:]
             # add gap to end of current read and reference
-            references[i] = references[i] + "-"
-            reads[i] = reads[i] + "-"
+            if len(compositeReference) > len(references[i])
+                references[i] = references[i] + "-"
+                reads[i] = reads[i] + "-"
             for k in range(i-2):
                 # introduce new gap into all reads before read i
                 reads[k+1] = reads[k+1][0:j] + "-" + reads[k+1][j:]
@@ -109,14 +111,14 @@ while i < len(references):
                 references[k+1] = references[k+1][:j] + "-" + references[k+1][j:]
         j = j + 1
     i = i + 1
-
+#print compositeReference
+#print reads[0]
+#print reads[1]
+#print reads[2]
 referenceSequence = compositeReference + "-"*(maxLength-len(compositeReference))
 # add additional gaps in case any sequnece is too large
 for i in range(len(reads)):
     reads[i] = reads[i] + "-"*(maxLength-len(reads[i]))
-print compositeReference
-print reads[0]
-print reads[1]
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
@@ -126,7 +128,7 @@ for i in range(len(compositeReference)):
     coverageCount = 0;
     for j in range(len(reads)):
         #print "comparing " +reads[j][i].upper() + " and " + compositeReference[i].upper()
-        if reads[j][i].upper() == compositeReference[i].upper():
+        if reads[j][i].upper() == compositeReference[i].upper() and not compositeReference[i] == "-":
             coverageCount = coverageCount + 1;
             readSequences[j] = readSequences[j] + reads[j][i].upper()
         else:
