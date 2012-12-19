@@ -8,7 +8,6 @@
 import os
 import sys
 import re
-print "---------------------------------------------------------------------"
 if len(sys.argv) > 2:
     if sys.argv[2] == "n":
         quiet = ""
@@ -76,7 +75,19 @@ i = 1
 while i < len(references):
     #compare references
     j = 0
-    while j < len(compositeReference):
+    while j < max(len(compositeReference), len(references[i])):
+        maxLength = max(len(compositeReference), len(references[i]))
+        if j >= len(compositeReference):
+            # other reference is longer, add gaps to end of compositeReference
+            compositeReference = compositeReference + "-"
+            reads[0] = reads[0] + "-"        
+        elif j >= len(references[i]):
+            # other reference is shorter, add gaps to end of references[i]            
+            references[i] = references[i] + "-"
+            reads[i] = reads[i] + "-"
+        #print str(j)+","+str(len(compositeReference))+","+str(len(references[i]))
+        compositeReference[j]
+        references[i][j]
         if compositeReference[j] == "-" and not references[i][j] == "-":
             # introduce new gap into reads[i] at position j
             reads[i] = reads[i][0:j] + "-" + reads[i][j:]
@@ -91,14 +102,21 @@ while i < len(references):
             # add gap to end of current read and reference
             references[i] = references[i] + "-"
             reads[i] = reads[i] + "-"
-            for k in range(i-1):
+            for k in range(i-2):
                 # introduce new gap into all reads before read i
-                reads[k] = reads[k][0:j] + "-" + reads[k][j:]
+                reads[k+1] = reads[k+1][0:j] + "-" + reads[k+1][j:]
                 # introduce new gap into reference[k] at position j
-                references[k] = references[k][:j] + "-" + references[k][j:]
+                references[k+1] = references[k+1][:j] + "-" + references[k+1][j:]
         j = j + 1
     i = i + 1
-referenceSequence = compositeReference
+
+referenceSequence = compositeReference + "-"*(maxLength-len(compositeReference))
+# add additional gaps in case any sequnece is too large
+for i in range(len(reads)):
+    reads[i] = reads[i] + "-"*(maxLength-len(reads[i]))
+print compositeReference
+print reads[0]
+print reads[1]
 # compute coverage and flags 
 flagString = ""
 coverageString = ""
