@@ -57,7 +57,6 @@ while i<len(inputSequenceFile):
                 i = i-1
         sequences.append(sequence.strip())
     i = i + 1
-
 # call muscle to do pairwise alignments
 referenceSequence = sequences[0]
 referenceName = sequenceNames[0]
@@ -66,42 +65,74 @@ tempfile = open('temp.fas','w')
 reads = []; # array that stores the alignments of the reads
 references = []; # array that stores the alignments of the reference sequence
 while i < len(sequenceNames):
-    tempfile = open('temp.fas','w+')
-    tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i] + "\n>" +sequenceNames[i] + "(-)\n" + revComp(sequences[i]))
+    tempReads = [] # store the two reads, one for forward direction the other for reverse
+    tempNames = [] # store the two names for the two reads, one for forward and the other for reverse
+    tempReferences =[] # store the two references for the two reads, one for forward and the other for reverse
+    # try forward direction
+    tempfile = open('temp.fas','w')
+    tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "\n" + sequences[i])
     tempfile.close()
     muscleout= os.popen("./muscle " + quiet +"< temp.fas").read() #store muscle output
     # parse muscle output
     sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout)
     nameMatches = re.findall(">.+",muscleout)
-    tempReads = [] # store the two reads, one for forward direction the other for reverse
-    tempNames = [] # store the two names for the two reads, one for forward and the other for reverse
     # reference sequence is not necessarily the first sequence in output
-    for j in range(len(nameMatches)):
-        if nameMatches[j][1:] == referenceName:
-            references.append(sequenceMatches[j].replace("\n",""))
-            currentReference = sequenceMatches[j]
-        else:
-            tempNames.append(nameMatches[j][1:])
-            tempReads.append(sequenceMatches[j].replace("\n",""))
+    if nameMatches[0][1:] == referenceName:
+        tempReads.append(sequenceMatches[1].replace("\n",""))
+        tempNames.append(nameMatches[1][1:])
+        tempReferences.append(sequenceMatches[0].replace("\n",""))
+    else:
+        tempReads.append(sequenceMatches[0].replace("\n",""))
+        tempNames.append(nameMatches[0][0:])
+        tempReferences.append(sequenceMatches[1].replace("\n",""))
+    # try reverse direction
+    tempfile = open('temp.fas','w')
+    tempfile.write(">" + referenceName + "\n" + referenceSequence + "\n>" + sequenceNames[i] + "(-)\n" + revComp(sequences[i]))
+    tempfile.close()
+    muscleout= os.popen("./muscle " + quiet +"< temp.fas").read() #store muscle output
+    # parse muscle output
+    sequenceMatches = re.findall("\n[actgACTG\-\n]+",muscleout)
+    nameMatches = re.findall(">.+",muscleout)
+    # reference sequence is not necessarily the first sequence in output
+    if nameMatches[0][1:] == referenceName:
+        tempReads.append(sequenceMatches[1].replace("\n",""))
+        tempNames.append(nameMatches[1][1:])
+        tempReferences.append(sequenceMatches[0].replace("\n",""))
+    else:
+        tempReads.append(sequenceMatches[0].replace("\n",""))
+        tempNames.append(nameMatches[0][1:])
+        tempReferences.append(sequenceMatches[1].replace("\n",""))
     # score the two reads and decide which is better
     score = 0 # for matches in the first read increment score, for matches in the second read decrement score
-    for k in range(len(currentReference)):
-        if currentReference[k].upper() == tempReads[0].upper():
+    for k in range(len(tempReferences[0])):
+        if tempReferences[0][k].upper() == tempReads[0][k].upper():
             score = score + 1
         else:
             score = score - 1
-        if currentReference[k].upper() == tempReads[1].upper():
+    for k in range(len(tempReferences[1])):
+        if tempReferences[1][k].upper() == tempReads[1][k].upper():
             score = score - 1
         else:
             score = score + 1
+    #print "##################################################################################################"
+    #print tempReferences[0]
+    #print tempReads[0]
+    #print tempReferences[1]
+    #print tempReads[1]
     if score >= 0:
         sequenceNames[i] = tempNames[0]
-        reads.append(tempReads[0])   
+        reads.append(tempReads[0]) 
+        references.append(tempReferences[0]) 
+        #print "selected: " + tempNames[0] 
     else:
         sequenceNames[i] = tempNames[1]
-        reads.append(tempReads[1])  
+        reads.append(tempReads[1])    
+        references.append(tempReferences[1])
+        #print "selected: " + tempNames[1] 
     i = i + 1
+
 os.remove("temp.fas")
+
 
 # create a composite reference sequence
 # reference alignments cannot differ in the order of letters [agctAGCT], but they can differ by where gaps are inserted
